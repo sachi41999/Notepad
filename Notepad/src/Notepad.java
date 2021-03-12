@@ -4,13 +4,20 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.print.PrinterException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Notepad extends JFrame implements ActionListener {
 	JTextArea txtarea;
 	JScrollPane jsp;
+	String text;
 	public Notepad() {
 		setBounds(0,0,1450,950);
 		//its for declare menubar
@@ -140,13 +147,30 @@ public class Notepad extends JFrame implements ActionListener {
 		selectall.addActionListener(this);
 		about.addActionListener(this);
 		
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 	}
 	public void actionPerformed(ActionEvent et) {
 		if(et.getActionCommand().equals("New")) {
 			txtarea.setText("");
 		}
 		else if(et.getActionCommand().equals("Open")) {
+			JFileChooser openas=new JFileChooser();
+			openas.setAcceptAllFileFilterUsed(false);
+			FileNameExtensionFilter restrict=new FileNameExtensionFilter("only txt files","txt");
+			openas.addChoosableFileFilter(restrict);
 			
+			int action=openas.showOpenDialog(this);
+			if(action!=JFileChooser.APPROVE_OPTION) {
+				return;
+			}
+			File openfile=openas.getSelectedFile();
+			try {
+				BufferedReader reader=new BufferedReader(new FileReader(openfile));
+				txtarea.read(reader, null);
+			}catch(Exception ex) {
+				System.out.println(ex.getMessage());
+			}
 		}
 		else if(et.getActionCommand().equals("Save")) {
 			JFileChooser saveas=new JFileChooser();
@@ -156,8 +180,42 @@ public class Notepad extends JFrame implements ActionListener {
 				return;
 			}
 			File filename=new File(saveas.getSelectedFile()+" .txt");
+			BufferedWriter outFile=null;
+			try {
+				outFile=new BufferedWriter(new FileWriter(filename));
+				txtarea.write(outFile);
+				
+			}catch(Exception ex) {
+				System.out.println(ex.getMessage());
+			}
 			
-			
+		}
+		else if(et.getActionCommand().equals("Print")) {
+			try {
+				txtarea.print();
+			} catch (PrinterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else if(et.getActionCommand().equals("Exit")) {
+			System.exit(0);
+		}
+		else if(et.getActionCommand().equals("Copy")) {
+			text=txtarea.getSelectedText();
+		}
+		else if(et.getActionCommand().equals("Paste")) {
+			txtarea.insert(text, txtarea.getCaretPosition());
+		}
+		else if(et.getActionCommand().equals("Cut")) {
+			text=txtarea.getSelectedText();
+			txtarea.replaceRange("", txtarea.getSelectionStart(), txtarea.getSelectionEnd());
+		}
+		else if(et.getActionCommand().equals("SelectAll")) {
+			txtarea.selectAll();
+		}
+		else if(et.getActionCommand().equals("About Us")) {
+			new About().setVisible(true);
 		}
 	}
 	
